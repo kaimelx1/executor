@@ -13,7 +13,7 @@ import java.util.Collections;
 
 public class MainTest {
 
-    private ScriptRepository repository = new InMemoryScriptRepository();
+    private final ScriptRepository repository = new InMemoryScriptRepository();
     private static final int INITIAL_SCRIPT_ID = 1;
     private static final Integer[] EXPECTED_ORDER_ARRAY = {4, 5, 2, 6, 3, 1};
 
