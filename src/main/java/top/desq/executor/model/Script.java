@@ -1,6 +1,6 @@
 package top.desq.executor.model;
 
-import top.desq.executor.service.Executable;
+import top.desq.executor.Executable;
 
 import java.util.List;
 

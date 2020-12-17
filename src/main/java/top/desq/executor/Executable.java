@@ -1,4 +1,4 @@
-package top.desq.executor.service;
+package top.desq.executor;
 
 public interface Executable {
 
