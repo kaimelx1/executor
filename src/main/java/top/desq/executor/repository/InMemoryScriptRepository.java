@@ -20,5 +20,4 @@ public class InMemoryScriptRepository implements ScriptRepository {
     public void clear() {
         repository.clear();
     }
-
 }
