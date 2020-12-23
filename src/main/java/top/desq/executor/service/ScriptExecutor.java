@@ -4,11 +4,14 @@ import top.desq.executor.model.Script;
 import top.desq.executor.repository.ScriptRepository;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-public class ScriptExecutor {
+public class ScriptExecutor implements Executor<Integer> {
 
-    private final List<Integer> cache = new ArrayList<>();
+    private final Map<Integer, String> cache = new LinkedHashMap<>();
+    private final List<Integer> chain = new ArrayList<>();
     private final ScriptRepository repository;
 
     public ScriptExecutor(ScriptRepository repository) {
@@ -17,23 +20,28 @@ public class ScriptExecutor {
 
     /**
      * Execute script and all its dependencies
+     *
      * @param scriptId
      */
-    public void execute(int scriptId) {
-        Script script = repository.get(scriptId);
+    public void execute(Integer scriptId) {
+        Script script = getScript(scriptId);
         executeDependencies(script);
         lazyExecution(script);
+        chain.clear();
     }
 
     /**
      * Execute dependencies
+     *
      * @param script
      */
     private void executeDependencies(Script script) {
         List<Integer> dependencies = script.getDependencies();
         if (!dependencies.isEmpty()) {
+            chain.add(script.getScriptId());
             dependencies.forEach(id -> {
-                        Script dependencyScript = repository.get(id);
+                        circularDependenciesCheck(id);
+                        Script dependencyScript = getScript(id);
                         executeDependencies(dependencyScript);
                         lazyExecution(dependencyScript);
                     }
@@ -42,18 +50,63 @@ public class ScriptExecutor {
     }
 
     /**
+     * Check if script has circular dependency
+     *
+     * @param scriptId
+     */
+    private void circularDependenciesCheck(int scriptId) {
+        if (chain.contains(scriptId)) {
+            throw new IllegalArgumentException("Script with id = " + chain.get(chain.size() - 1) +
+                    " has circular dependency on script with id = " + scriptId);
+        }
+    }
+
+    /**
      * Lazy execution
+     *
      * @param script
      */
     private void lazyExecution(Script script) {
         int scriptId = script.getScriptId();
-        if (!cache.contains(scriptId)) {
-            script.execute();
-            cache.add(scriptId);
+        if (!cache.containsKey(scriptId) || !cache.get(scriptId).equals(script.getVersion())) {
+            doWork(script);
+            cache.put(scriptId, script.getVersion());
         }
     }
 
-    public List getCache() {
+    /**
+     * Get script with check on null element
+     *
+     * @param scriptId
+     * @return
+     */
+    private Script getScript(int scriptId) {
+        Script script = repository.get(scriptId);
+        if (script == null)
+            throw new IllegalArgumentException("Trying execute non-existent script with id = " + scriptId);
+        return script;
+    }
+
+    /**
+     * Some script execution logic
+     *
+     * @param script
+     */
+    private void doWork(Script script) {
+        System.out.println("Executing script #" + script.getScriptId() + ", version = " + script.getVersion());
+    }
+
+    /**
+     * Get already executed scripts
+     */
+    public Map<Integer, String> getCache() {
         return cache;
+    }
+
+    /**
+     * Clear cache
+     */
+    public void clearCache() {
+        cache.clear();
     }
 }

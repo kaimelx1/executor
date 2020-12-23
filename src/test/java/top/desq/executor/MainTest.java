@@ -3,69 +3,88 @@ package top.desq.executor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import top.desq.executor.model.Script;
 import top.desq.executor.repository.InMemoryScriptRepository;
 import top.desq.executor.repository.ScriptRepository;
 import top.desq.executor.service.ScriptExecutor;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 public class MainTest {
 
     private final ScriptRepository repository = new InMemoryScriptRepository();
-    private static final int INITIAL_SCRIPT_ID = 1;
-    private static final Integer[] EXPECTED_ORDER_ARRAY = {4, 5, 2, 6, 3, 1};
 
     /**
      * Script dependencies structure:
-     *           1
-     *          / \
-     *         2   3
-     *        / \ / \
-     *       4   5   6
+     *          1
+     *         / \
+     *        2   3
+     *       / \ / \
+     *      4   5   6
      */
     @Test
-    public void executionOrderTest() {
-        fillDependencies();
+    public void newVersionsTest() {
+        // old set of data
         ScriptExecutor scriptExecutor = new ScriptExecutor(repository);
-        scriptExecutor.execute(INITIAL_SCRIPT_ID); // execute script with ID = 1 and all its dependencies
-        System.out.println("Cache: " + scriptExecutor.getCache());
-        Assert.assertArrayEquals(EXPECTED_ORDER_ARRAY, scriptExecutor.getCache().toArray());
+        TestData.fillDependencies(repository);
+        scriptExecutor.execute(TestData.INITIAL_SCRIPT_ID);
+        // new set of data
+        repository.clear();
+        TestData.fillDependenciesWithNewVersions(repository);
+        scriptExecutor.execute(TestData.INITIAL_SCRIPT_ID);
+
+        Assert.assertEquals(TestData.EXPECTED_ORDER_MAP, scriptExecutor.getCache());
     }
 
     /**
      * Script dependencies structure:
-     *           1 <----\
-     *          / \      \
-     *         2   3 <---/
-     *        / \ / \   /
-     *       4   5   6 /
+     *          1
+     *         / \
+     *        2   3
+     *       / \ / \
+     *      4   5   6
      */
-    @Test(expected = StackOverflowError.class)
-    public void circularDependenciesTest() {
-        fillCircularDependencies();
+    @Test
+    public void executionOrderTest() {
+        TestData.fillDependencies(repository);
         ScriptExecutor scriptExecutor = new ScriptExecutor(repository);
-        scriptExecutor.execute(INITIAL_SCRIPT_ID); // execute script with ID = 1 and all its dependencies
+        scriptExecutor.execute(TestData.INITIAL_SCRIPT_ID);
+        Assert.assertArrayEquals(TestData.EXPECTED_ORDER_ARRAY, scriptExecutor.getCache().keySet().toArray());
+        scriptExecutor.clearCache();
+    }
+
+    /**
+     * Script dependencies structure:
+     *          1 <----\
+     *         / \      \
+     *        2   3 <---/
+     *       / \ / \   /
+     *      4   5   6 /
+     */
+    @Test
+    public void circularDependenciesTest() {
+        TestData.fillCircularDependencies(repository);
+        ScriptExecutor scriptExecutor = new ScriptExecutor(repository);
+        scriptExecutor.execute(TestData.INITIAL_SCRIPT_ID);
+        scriptExecutor.clearCache();
+    }
+
+    /**
+     * Script dependencies structure:
+     *          1
+     *         / \
+     *        2   3
+     *       / \ / \
+     *      4   5  null
+     */
+    @Test
+    public void nonExistentScriptTest() {
+        TestData.fillDependenciesWithIncorrectId(repository);
+        ScriptExecutor scriptExecutor = new ScriptExecutor(repository);
+        scriptExecutor.execute(TestData.INITIAL_SCRIPT_ID);
+        scriptExecutor.clearCache();
     }
 
     @After
     public void clear() {
         repository.clear();
-    }
-
-    private void fillDependencies() {
-        repository.add(1, new Script(1, Arrays.asList(2, 3)));
-        repository.add(2, new Script(2, Arrays.asList(4, 5)));
-        repository.add(3, new Script(3, Arrays.asList(5, 6)));
-        repository.add(4, new Script(4, Collections.emptyList()));
-        repository.add(5, new Script(5, Collections.emptyList()));
-        repository.add(6, new Script(6, Collections.emptyList()));
-    }
-
-    private void fillCircularDependencies() {
-        fillDependencies();
-        repository.add(6, new Script(6, Arrays.asList(1, 3)));
     }
 
 }
