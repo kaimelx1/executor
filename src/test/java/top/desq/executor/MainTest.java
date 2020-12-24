@@ -14,10 +14,10 @@ public class MainTest {
     /**
      * Script dependencies structure:
      *          1
-     *         / \
-     *        2   3
-     *       / \ / \
-     *      4   5   6
+     *        /   \
+     *       2     3
+     *      / \   / \
+     *     4   5 5   6
      */
     @Test
     public void newVersionsTest() {
@@ -36,10 +36,10 @@ public class MainTest {
     /**
      * Script dependencies structure:
      *          1
-     *         / \
-     *        2   3
-     *       / \ / \
-     *      4   5   6
+     *        /   \
+     *       2     3
+     *      / \   / \
+     *     4   5 5   6
      */
     @Test
     public void executionOrderTest() {
@@ -53,10 +53,10 @@ public class MainTest {
     /**
      * Script dependencies structure:
      *          1 <----\
-     *         / \      \
-     *        2   3 <---/
-     *       / \ / \   /
-     *      4   5   6 /
+     *        /   \     \
+     *       2     3 <--/
+     *      / \   / \  /
+     *     4   5 5   6/
      */
     @Test
     public void circularDependenciesTest() {
@@ -69,10 +69,10 @@ public class MainTest {
     /**
      * Script dependencies structure:
      *          1
-     *         / \
-     *        2   3
-     *       / \ / \
-     *      4   5  null
+     *        /   \
+     *       2     3
+     *      / \   / \
+     *     4   5 5  null
      */
     @Test
     public void nonExistentScriptTest() {

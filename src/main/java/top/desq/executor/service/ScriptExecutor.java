@@ -3,7 +3,10 @@ package top.desq.executor.service;
 import top.desq.executor.model.Script;
 import top.desq.executor.repository.ScriptRepository;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 public class ScriptExecutor implements Executor<Integer> {
 
@@ -43,6 +46,11 @@ public class ScriptExecutor implements Executor<Integer> {
                         lazyExecution(dependencyScript);
                     }
             );
+        } else {
+            // if all parent's dependencies are already in cache -> pop parent from stack
+            if (getScript(chain.peek()).getDependencies().stream().allMatch(id -> id == script.getScriptId() || cache.containsKey(id))) {
+                chain.pop();
+            }
         }
     }
 
