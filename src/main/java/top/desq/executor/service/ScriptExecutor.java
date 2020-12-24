@@ -46,11 +46,6 @@ public class ScriptExecutor implements Executor<Integer> {
                         lazyExecution(dependencyScript);
                     }
             );
-        } else {
-            // if all parent's dependencies are already in cache -> pop parent from stack
-            if (getScript(chain.peek()).getDependencies().stream().allMatch(id -> id == script.getScriptId() || cache.containsKey(id))) {
-                chain.pop();
-            }
         }
     }
 
