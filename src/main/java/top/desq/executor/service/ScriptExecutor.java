@@ -3,15 +3,12 @@ package top.desq.executor.service;
 import top.desq.executor.model.Script;
 import top.desq.executor.repository.ScriptRepository;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScriptExecutor implements Executor<Integer> {
 
     private final Map<Integer, String> cache = new LinkedHashMap<>();
-    private final List<Integer> chain = new ArrayList<>();
+    private final Stack<Integer> chain = new Stack<>();
     private final ScriptRepository repository;
 
     public ScriptExecutor(ScriptRepository repository) {
@@ -38,7 +35,7 @@ public class ScriptExecutor implements Executor<Integer> {
     private void executeDependencies(Script script) {
         List<Integer> dependencies = script.getDependencies();
         if (!dependencies.isEmpty()) {
-            chain.add(script.getScriptId());
+            chain.push(script.getScriptId());
             dependencies.forEach(id -> {
                         circularDependenciesCheck(id);
                         Script dependencyScript = getScript(id);
@@ -56,7 +53,7 @@ public class ScriptExecutor implements Executor<Integer> {
      */
     private void circularDependenciesCheck(int scriptId) {
         if (chain.contains(scriptId)) {
-            throw new IllegalArgumentException("Script with id = " + chain.get(chain.size() - 1) +
+            throw new IllegalArgumentException("Script with id = " + chain.peek() +
                     " has circular dependency on script with id = " + scriptId);
         }
     }
